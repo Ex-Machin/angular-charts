@@ -1,0 +1,25 @@
+.wrapper {
+  // width: 100%;
+  max-width: inherit;
+  grid-gap: 50px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+}
+
+a {
+  text-decoration: none;
+  color: #506678;
+  border-bottom: 1px solid rgba(80, 102, 120, 0.25);
+  transition: all 0.35s;
+
+  &:hover {
+    color: #677f93;
+    border-bottom: 1px solid rgba(149, 76, 233, 0.5);
+  }
+}
