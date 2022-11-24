@@ -37,14 +37,7 @@ export class AppComponent implements OnInit {
   options: any;
   acc: Accumulator[] = [];
   acc2: any[] = [];
-  acc3: any[] = [
-    {totalSum: 0, item_name: ""},
-    {totalSum: 0, item_name: ""},
-    {totalSum: 0, item_name: ""},
-    {totalSum: 0, item_name: ""},
-    {totalSum: 0, item_name: ""},
-    {totalSum: 0, item_name: ""},
-  ];
+  acc3: any[] = [];
   labels: string[] = [];
   gradient: any;
 
@@ -86,18 +79,6 @@ export class AppComponent implements OnInit {
     let accumulatedDate: string = '';
     let accumulatedVat: number = 0;
     let accumulatedBuyer: string = '';
-    let accumulatedItemName: string = '';
-    let accumulatedItemPrice2: number = 0;
-
-    let firstHashmap = new Map()
-    let secondHashmap = new Map([
-      [1, "first"],
-      [2, "second"],
-      [5, "fifth"]
-    ]
-    )
-
-
 
     for (let index = 0; index < this.dataFromAPI.length; index++) {
       const prevEl: DataSet | undefined = this.dataFromAPI[index - 1];
@@ -150,33 +131,23 @@ export class AppComponent implements OnInit {
         }
       }
     }
-    // let nums:any = [2,7,11,15] 
-    // let target: any = 9
     let tempIndex = 0;
-    // var twoSum = function(nums: any, target: any) {
-    //   const comp :object[]  = {};
-    //   for(let i=0; i<nums.length; i++){
-    //       if(comp(nums[i])] >=0 ){
-    //           return [ comp[nums[i] ] , i]
-    //       }
-    //       comp[target-nums[i]] = i
-    //   }
-    // }
-  
 
-    for (let i = 0; i < this.dataFromAPI.length; i++) {
-        for (let j = 0; j < this.dataFromAPI.length; j++) {
+    const itemNames = new Map();
+    this.dataFromAPI.forEach((el) => {
+      itemNames.set(el.item_name, el.item_name);
+    });
 
-          if (this.dataFromAPI[i].item_name === this.dataFromAPI[j].item_name) {
-            if (this.acc3[tempIndex]) {
-              this.acc3[tempIndex].totalSum += 1; 
-              this.acc3[tempIndex].item_name = this.dataFromAPI[i].item_name;
-            }
-          }
-        } 
-        tempIndex++
-      }
 
+    itemNames.forEach((itemName, i) => {
+      let count = 0;
+      this.dataFromAPI.forEach((el) => {
+        if (el.item_name === itemName) {
+          count++
+        }
+      })
+      this.acc3.push({totalSum: count, item_name: itemName })
+    });
 
     this.data = {
       datasets: [
@@ -228,12 +199,11 @@ export class AppComponent implements OnInit {
           pointBackgroundColor: 'rgb(255, 99, 132)',
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgb(255, 99, 132)'
+          pointHoverBorderColor: 'rgb(255, 99, 132)',
         },
       ],
       labels: this.acc3.map((el) => el.item_name),
     };
-    
 
     this.options = {
       parsing: {
