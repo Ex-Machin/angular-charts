@@ -104,9 +104,9 @@ export class AppComponent implements AfterContentInit {
     let accumulatedVat: number = 0;
     let accumulatedCostPrice: number = 0;
 
-    for (let index = 0; index < this.dataFromAPI.length; index++) {
-      const prevEl: DataSet | undefined = this.dataFromAPI[index - 1];
-      const curEl: DataSet = this.dataFromAPI[index];
+    this.dataFromAPI.forEach((element: any, i:number) => {
+      const prevEl: DataSet | undefined = this.dataFromAPI[i - 1];
+      const curEl: DataSet = this.dataFromAPI[i];
       if (prevEl) {
         const curDate = new Date(Date.parse(curEl.created_at));
         const curMonth = curDate.toLocaleString('default', { month: 'long' });
@@ -137,7 +137,7 @@ export class AppComponent implements AfterContentInit {
           accumulatedCostPrice = 0;
         }
       }
-    }
+    });
     const uniqueBuers = [...new Set(this.dataFromAPI.map(item => item.buyer_name))];
 
     uniqueBuers.forEach((buyerName) => {
@@ -160,7 +160,7 @@ export class AppComponent implements AfterContentInit {
           count++
         }
       })
-      this.acc3.push({totalSum: count, buyer_name: itemName })
+      this.acc3.push({totalSum: count, item_name: itemName })
     });
 
     
@@ -232,6 +232,7 @@ export class AppComponent implements AfterContentInit {
       ],
       labels: this.acc3.map((el) => el.item_name),
     };
+    
 
     this.options = {
       parsing: {
