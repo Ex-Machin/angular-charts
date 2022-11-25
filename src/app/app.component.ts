@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterContentInit, Component, OnInit } from '@angular/core';
 import { dataMock } from './data';
 
 type DataSet = {
@@ -23,6 +23,7 @@ type Accumulator = {
   date: string;
   totalSum: number;
   vat: number;
+  costPrice: number;
 };
 
 @Component({
@@ -30,7 +31,7 @@ type Accumulator = {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements AfterContentInit {
   data: any;
   data2: any;
   data3: any;
@@ -42,6 +43,8 @@ export class AppComponent implements OnInit {
   labels: string[] = [];
   gradient: any;
   gradient2: any;
+  gradient3: any;
+
 
   colors = {
     purple: {
@@ -56,17 +59,24 @@ export class AppComponent implements OnInit {
       quarter: 'RGB(142, 219, 218, 0.25)',
       zero: 'RGB(142, 219, 218, 0)',
     },
+    purple3: {
+      default: 'RGB(219, 142, 143, 1)',
+      half: 'RGB(219, 142, 143, 0.5)',
+      quarter: 'RGB(219, 142, 143, 0.25)',
+      zero: 'RGB(219, 142, 143, 0)',
+    },
     indigo: {
       default: 'rgba(80, 102, 120, 1)',
       quarter: 'rgba(80, 102, 120, 0.25)',
     },
   };
 
-  ngOnInit(): void {
+  ngAfterContentInit(): void {
     const ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
 
     const gradient = ctx?.createLinearGradient(0, 25, 0, 300);
     const gradient2 = ctx?.createLinearGradient(0, 25, 0, 300);
+    const gradient3 = ctx?.createLinearGradient(0, 25, 0, 300);
 
     gradient?.addColorStop(0, this.colors.purple.half);
     gradient?.addColorStop(0.35, this.colors.purple.quarter);
@@ -76,19 +86,23 @@ export class AppComponent implements OnInit {
     gradient2?.addColorStop(0.35, this.colors.purple2.quarter);
     gradient2?.addColorStop(1, this.colors.purple2.zero);
 
+    gradient3?.addColorStop(0, this.colors.purple3.half);
+    gradient3?.addColorStop(0.35, this.colors.purple3.quarter);
+    gradient3?.addColorStop(1, this.colors.purple3.zero);
 
     this.gradient = gradient;
     this.gradient2 = gradient2;
+    this.gradient3 = gradient3;
   }
+
   dataFromAPI: DataSet[];
 
   constructor() {
     this.dataFromAPI = dataMock;
     let accumulatedPrice: number = 0;
-    let accumulatedPriceForBuyer: number = 0;
     let accumulatedDate: string = '';
     let accumulatedVat: number = 0;
-    let accumulatedBuyer: string = '';
+    let accumulatedCostPrice: number = 0;
 
     for (let index = 0; index < this.dataFromAPI.length; index++) {
       const prevEl: DataSet | undefined = this.dataFromAPI[index - 1];
@@ -107,23 +121,24 @@ export class AppComponent implements OnInit {
         if (fullCurDate === fullPrevDate) {
           accumulatedPrice += prevEl.total_price + curEl.total_price;
           accumulatedVat += prevEl.vat + curEl.vat;
+          accumulatedCostPrice += prevEl.cost_price + curEl.cost_price;
           accumulatedDate = fullPrevDate;
         } else {
           this.acc.push({
             totalSum: accumulatedPrice,
             date: accumulatedDate,
             vat: accumulatedVat,
+            costPrice: accumulatedCostPrice,
           });
 
           accumulatedDate = '';
           accumulatedPrice = 0;
           accumulatedVat = 0;
+          accumulatedCostPrice = 0;
         }
       }
     }
     const uniqueBuers = [...new Set(this.dataFromAPI.map(item => item.buyer_name))];
-    console.log(uniqueBuers);
-    
 
     uniqueBuers.forEach((buyerName) => {
       let count = 0;
@@ -134,8 +149,6 @@ export class AppComponent implements OnInit {
       })
       this.acc2.push({totalSum: count, buyer_name: buyerName })
     });
-
-      console.log(this.acc2);
       
 
     const unique = [...new Set(this.dataFromAPI.map(item => item.item_name))]; 
@@ -149,6 +162,8 @@ export class AppComponent implements OnInit {
       })
       this.acc3.push({totalSum: count, buyer_name: itemName })
     });
+
+    
     setTimeout(() => {
       this.data = {
         datasets: [
@@ -168,8 +183,19 @@ export class AppComponent implements OnInit {
             label: 'Vat',
             fill: true,
             backgroundColor: this.gradient2,
-            pointBackgroundColor: this.colors.purple2,
+            pointBackgroundColor: this.colors.purple2.half,
             borderColor: this.colors.purple2.default,
+            lineTension: 0.2,
+            borderWidth: 2,
+            pointRadius: 3,
+          },
+          {
+            data: this.acc.map((el) => el.costPrice),
+            label: 'Cost Price',
+            fill: true,
+            backgroundColor: this.gradient3,
+            pointBackgroundColor: this.colors.purple3.half,
+            borderColor: this.colors.purple3.default,
             lineTension: 0.2,
             borderWidth: 2,
             pointRadius: 3,
@@ -177,8 +203,7 @@ export class AppComponent implements OnInit {
         ],
         labels: this.acc.map((el) => el.date),
       };
-  
-    },0)
+     }, 0)
     
     this.data2 = {
       datasets: [
