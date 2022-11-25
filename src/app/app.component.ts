@@ -38,8 +38,10 @@ export class AppComponent implements OnInit {
   acc: Accumulator[] = [];
   acc2: any[] = [];
   acc3: any[] = [];
+  acc4: any[] = [];
   labels: string[] = [];
   gradient: any;
+  gradient2: any;
 
   colors = {
     purple: {
@@ -49,10 +51,10 @@ export class AppComponent implements OnInit {
       zero: 'rgba(149, 76, 233, 0)',
     },
     purple2: {
-      default: 'RGB(142, 219, 218)',
-      half: 'RGB(142, 219, 218)',
-      quarter: 'RGB(142, 219, 218)',
-      zero: 'RGB(142, 219, 218)',
+      default: 'RGB(142, 219, 218, 1)',
+      half: 'RGB(142, 219, 218, 0.5)',
+      quarter: 'RGB(142, 219, 218, 0.25)',
+      zero: 'RGB(142, 219, 218, 0)',
     },
     indigo: {
       default: 'rgba(80, 102, 120, 1)',
@@ -64,11 +66,19 @@ export class AppComponent implements OnInit {
     const ctx = document.getElementsByTagName('canvas')[0].getContext('2d');
 
     const gradient = ctx?.createLinearGradient(0, 25, 0, 300);
+    const gradient2 = ctx?.createLinearGradient(0, 25, 0, 300);
 
     gradient?.addColorStop(0, this.colors.purple.half);
     gradient?.addColorStop(0.35, this.colors.purple.quarter);
     gradient?.addColorStop(1, this.colors.purple.zero);
+
+    gradient2?.addColorStop(0, this.colors.purple2.half);
+    gradient2?.addColorStop(0.35, this.colors.purple2.quarter);
+    gradient2?.addColorStop(1, this.colors.purple2.zero);
+
+
     this.gradient = gradient;
+    this.gradient2 = gradient2;
   }
   dataFromAPI: DataSet[];
 
@@ -111,79 +121,72 @@ export class AppComponent implements OnInit {
         }
       }
     }
+    const uniqueBuers = [...new Set(this.dataFromAPI.map(item => item.buyer_name))];
+    console.log(uniqueBuers);
+    
 
-    for (let index = 0; index < this.dataFromAPI.length; index++) {
-      const prevEl: DataSet | undefined = this.dataFromAPI[index - 1];
-      const curEl: DataSet = this.dataFromAPI[index];
-      if (prevEl) {
-        if (prevEl.buyer_name === curEl.buyer_name) {
-          for (let j = 0; j < this.dataFromAPI.length; j++) {
-            accumulatedPriceForBuyer += prevEl.total_price + curEl.total_price;
-            accumulatedBuyer = prevEl.buyer_name;
-          }
-        } else {
-          this.acc2.push({
-            totalSum: accumulatedPriceForBuyer,
-            buyer_name: accumulatedBuyer,
-          });
-          accumulatedPriceForBuyer = 0;
-          accumulatedBuyer = '';
+    uniqueBuers.forEach((buyerName) => {
+      let count = 0;
+      this.dataFromAPI.forEach((el) => {
+        if (el.buyer_name === buyerName) {
+          count++
         }
-      }
-    }
-    let tempIndex = 0;
-
-    const itemNames = new Map();
-    this.dataFromAPI.forEach((el) => {
-      itemNames.set(el.item_name, el.item_name);
+      })
+      this.acc2.push({totalSum: count, buyer_name: buyerName })
     });
 
+      console.log(this.acc2);
+      
 
-    itemNames.forEach((itemName, i) => {
+    const unique = [...new Set(this.dataFromAPI.map(item => item.item_name))]; 
+
+    unique.forEach((itemName) => {
       let count = 0;
       this.dataFromAPI.forEach((el) => {
         if (el.item_name === itemName) {
           count++
         }
       })
-      this.acc3.push({totalSum: count, item_name: itemName })
+      this.acc3.push({totalSum: count, buyer_name: itemName })
     });
-
-    this.data = {
-      datasets: [
-        {
-          data: this.acc?.map((el) => el.totalSum),
-          label: 'Total Price',
-          fill: true,
-          backgroundColor: this.gradient,
-          pointBackgroundColor: this.colors.purple.default,
-          borderColor: this.colors.purple.default,
-          lineTension: 0.2,
-          borderWidth: 2,
-          pointRadius: 3,
-        },
-        {
-          data: this.acc.map((el) => el.vat),
-          label: 'Vat',
-          fill: true,
-          backgroundColor: this.gradient,
-          pointBackgroundColor: this.colors.purple2,
-          borderColor: this.colors.purple2.default,
-          lineTension: 0.2,
-          borderWidth: 2,
-          pointRadius: 3,
-        },
-      ],
-      labels: this.acc.map((el) => el.date),
-    };
-
+    setTimeout(() => {
+      this.data = {
+        datasets: [
+          {
+            data: this.acc?.map((el) => el.totalSum),
+            label: 'Total Price',
+            fill: true,
+            backgroundColor: this.gradient,
+            pointBackgroundColor: this.colors.purple.default,
+            borderColor: this.colors.purple.default,
+            lineTension: 0.2,
+            borderWidth: 2,
+            pointRadius: 3,
+          },
+          {
+            data: this.acc.map((el) => el.vat),
+            label: 'Vat',
+            fill: true,
+            backgroundColor: this.gradient2,
+            pointBackgroundColor: this.colors.purple2,
+            borderColor: this.colors.purple2.default,
+            lineTension: 0.2,
+            borderWidth: 2,
+            pointRadius: 3,
+          },
+        ],
+        labels: this.acc.map((el) => el.date),
+      };
+  
+    },0)
+    
     this.data2 = {
       datasets: [
         {
           data: this.acc2?.map((el) => el.totalSum),
           label: 'Spent',
-          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
-          hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+          backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#00bb7e'],
+          hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#00bb7e'],
         },
       ],
       labels: this.acc2.map((el) => el.buyer_name),
@@ -216,37 +219,6 @@ export class AppComponent implements OnInit {
       },
       legend: {
         display: false,
-      },
-
-      scales: {
-        x: {
-          grid: {
-            display: false,
-          },
-          ticks: {
-            padding: 10,
-            autoSkip: false,
-            maxRotation: 15,
-            minRotation: 15,
-          },
-        },
-        y: {
-          scaleLabel: {
-            display: true,
-            labelString: 'Weight in KG',
-            padding: 10,
-          },
-          grid: {
-            display: true,
-            color: this.colors.indigo.quarter,
-          },
-          ticks: {
-            beginAtZero: false,
-            max: 63,
-            min: 57,
-            padding: 10,
-          },
-        },
       },
     };
   }
